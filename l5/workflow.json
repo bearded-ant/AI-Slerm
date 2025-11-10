@@ -1,17 +1,6 @@
 {
   "nodes": [
     {
-      "parameters": {},
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
-      "position": [
-        0,
-        0
-      ],
-      "id": "58ac2ae7-367a-492d-a970-e666f068b5d9",
-      "name": "When clicking ‘Execute workflow’"
-    },
-    {
       "parameters": {
         "url": "http://192.168.3.2:8080/",
         "options": {}
@@ -42,7 +31,7 @@
               "rightValue": "gits work",
               "operator": {
                 "type": "string",
-                "operation": "notContains"
+                "operation": "contains"
               }
             }
           ],
@@ -53,16 +42,16 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        400,
-        -192
+        656,
+        -112
       ],
       "id": "598e03e0-9074-400c-96a4-5275eed37090",
       "name": "If"
     },
     {
       "parameters": {
-        "chatId": "1309443981",
-        "text": "Сайт упал",
+        "chatId": "=1309443981",
+        "text": "={{ $json.timestamp }}\nСайт упал\n```{{ $json.message }}```",
         "additionalFields": {
           "appendAttribution": false
         }
@@ -70,8 +59,8 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        544,
-        128
+        1408,
+        64
       ],
       "id": "79802296-05ac-49a9-91f3-5942e712d427",
       "name": "Send a text message",
@@ -82,10 +71,141 @@
           "name": "Telegram account"
         }
       }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -32,
+        0
+      ],
+      "id": "17489005-dee8-46ef-81f0-4787f82a23ef",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "523c1b60-2552-455a-81f1-61870510630a",
+              "name": "timestamp",
+              "value": "={{ $('Schedule Trigger').item.json.timestamp }}",
+              "type": "string"
+            },
+            {
+              "id": "42d2928d-706e-4236-8e01-afa59b57409e",
+              "name": "data",
+              "value": "={{ $json.data }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        -112
+      ],
+      "id": "60d6a1ff-dda1-45c8-8179-c8eddc4b89bf",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "78c6db40-ab02-413d-88bf-519ffc01ca42",
+              "name": "timestamp",
+              "value": "={{ $json.timestamp }}",
+              "type": "string"
+            },
+            {
+              "id": "f3c2bca1-7ef1-43a4-b0c5-02517b9c4ac9",
+              "name": "message",
+              "value": "={{ $json.error.code }} {{ $json.error.status }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        80
+      ],
+      "id": "b5a607a9-cd97-42d5-a048-cf992c0d3783",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем данные из предыдущего узла\nconst items = $input.all();\n\n// Обрабатываем каждый элемент\nreturn items.map(item => {\n  const html = item.json.data;\n  \n  // Способ 1: Используя регулярное выражение\n  const match = html.match(/<h1[^>]*>(.*?)<\\/h1>/i);\n  const h1Text = match ? match[1] : null;\n  \n  return {\n    json: {\n      timestamp: $input.first().json.timestamp,\n      message: h1Text\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        -112
+      ],
+      "id": "0f52d27e-9372-409e-96d2-60fc8816f493",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1152,
+        64
+      ],
+      "id": "3b3cb7d8-02d2-4bc2-9951-2ee8f74fe60c",
+      "name": "Merge"
     }
   ],
   "connections": {
-    "When clicking ‘Execute workflow’": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
       "main": [
         [
           {
@@ -96,7 +216,7 @@
         ]
       ]
     },
-    "HTTP Request": {
+    "Edit Fields": {
       "main": [
         [
           {
@@ -104,17 +224,32 @@
             "type": "main",
             "index": 0
           }
-        ],
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
         [
           {
-            "node": "Send a text message",
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "If": {
+    "Merge": {
       "main": [
         [
           {
