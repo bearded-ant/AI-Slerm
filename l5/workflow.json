@@ -1,0 +1,134 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "58ac2ae7-367a-492d-a970-e666f068b5d9",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "http://192.168.3.2:8080/",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "530e3978-2acb-40aa-811a-38f0123ddb6d",
+      "name": "HTTP Request",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e99e3876-862b-4168-83f3-6a9b3fe2f1ee",
+              "leftValue": "={{ $json.data }}",
+              "rightValue": "gits work",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        400,
+        -192
+      ],
+      "id": "598e03e0-9074-400c-96a4-5275eed37090",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "1309443981",
+        "text": "Сайт упал",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        544,
+        128
+      ],
+      "id": "79802296-05ac-49a9-91f3-5942e712d427",
+      "name": "Send a text message",
+      "webhookId": "41d991cc-9171-4812-9a62-ee3817e15030",
+      "credentials": {
+        "telegramApi": {
+          "id": "CVvIWzdVfNmjiO40",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8235cf52cd79e12f2f3763a39e0863234b9406d7a0e002b9f79f7ca3dde6db3a"
+  }
+}
