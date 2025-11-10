@@ -16,19 +16,16 @@ services:
       - n8n_data:/home/node/.n8n
 
   ollama:
-    image: ollama/ollama:latest
+    image: ollama/ollama:rocm
     restart: always
     ports:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+      - /usr/share/ollama/.ollama/models:/root/.ollama/models
+    devices:
+      - /dev/kfd
+      - /dev/dri
 
 volumes:
   n8n_data:
